@@ -1,0 +1,9 @@
+a{ color:$blue-color;}
+
+#responsive-navbar-nav{ .navbar-nav{ .nav-link{ font-size: 1.1rem; font-family: 'euclid_circular_amedium'; color:#333333; } }
+
+}
+.usercl{.dropdown-toggle:after{ display: none;} 
+@include upto-md{ margin-left: auto; margin-right: 10px;}
+}
+.logo{ @include upto-xs{ img{max-width: 150px;}} }

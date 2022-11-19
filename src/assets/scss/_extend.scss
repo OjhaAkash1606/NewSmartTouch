@@ -1,0 +1,40 @@
+
+
+.buytext-cl{ background: #f0f5fb;  font-family: 'euclid_circular_abold'; color:$blue-color; padding: 3px 6px;}
+.selltext-cl{ background: #fbf1f1;  font-family: 'euclid_circular_abold'; color:$red-color; padding: 3px 6px;}
+
+.th-cl{
+    color:$grey-text;
+    height: 40px;
+    vertical-align: middle;
+}
+
+.badge-cl{ font-weight: normal; &.bg-success{ background: $gn-color !important;} &.bg-danger{ background: $red-color !important;} 
+&.bg-info{ background: #f1ecf8 !important; color:#876fbf;   font-family: 'euclid_circular_asemibold'; }
+}
+
+.box-cl{ border:1px solid #dbdbdb; background: #fff; border-radius: 5px; padding: 10px;
+    
+.box-list{ li{ display: flex; border-bottom: 1px solid #dbdbdb; padding: 10px; justify-content: space-between; &:last-child{border:0;} }
+.text-content{ color:$grey-text;}
+.text-value{ font-family: 'euclid_circular_abold', sans-serif;}
+}
+h3{ font-size: inherit; font-family: 'euclid_circular_asemibold'; font-size: 1rem; }
+h4{ font-size: inherit; font-family: 'euclid_circular_asemibold'; font-size: 0.875rem; }
+&.smbox{ position: relative;  .sm-text{ background: #fff;  position: absolute; left:50%; top:-10px; transform: translateX(-50%); padding: 3px 8px;}  min-width: 150px; padding:5px; }
+}
+
+.title-cl-exd{  border-radius: 25px; color:#fff; text-transform: uppercase; font-size: 1.1rem; font-family: 'euclid_circular_asemibold'; display: inline-block; padding: 0.6rem 2.5rem; position: absolute; left: 50%; top:-25px; transform: translateX(-50%);  }
+
+.buttongpcl-ext{
+    .btn-group{  padding: 5px; background: #f0f6fb; label.btn.btn-primary{ background: #f0f6fb; border: 0; color:inherit; margin: 0 5px; border-radius: 10px; } 
+.btn-check:active+.btn, .btn-check:checked+.btn, .btn.active, .btn.show, .btn:active{
+    background: $blue-color; color:#fff;
+    border-radius: 10px;
+}
+}
+.btn-check:focus + .btn, .btn:focus{ box-shadow: none;}
+&.gridbtns{ 
+.btn-group{ display: grid; grid-template-columns: repeat(5, auto); background: transparent;  grid-row-gap:5px; }
+}
+}
