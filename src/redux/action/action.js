@@ -21,6 +21,13 @@ export const getBrdSocket = () => {
   };
 };
 
+/* export const broadCastOnOpen = () => {
+  
+  return {
+    type: types.BRODCAST_ONOPEN
+  };
+}; */
+
 export const setoptionData = (data, loading) => {
   return {
     type: types.OPTION_DATA,
@@ -52,6 +59,10 @@ export const currentSymbol = currentSymbol => {
   return { type: types.Current_Symbol, currentSymbol };
 };
 
+export const defaultSymbol = defaultSymbol => {
+  return { type: types.Default_Symbol, defaultSymbol };
+};
+
 export const gridStrike = Strike => {
   return { type: types.GRID_STRIKE_PRICE, Strike };
 };
@@ -70,6 +81,10 @@ export const liveData = socketData => {
 
 export const expDate = curExpDate => {
   return { type: types.EXP_DATE, curExpDate };
+};
+
+export const defExpDate = defExpDate => {
+  return { type: types.DEFAULT_EXP_DATE, defExpDate };
 };
 
 export const allSelectedDate = allDate => {

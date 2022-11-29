@@ -4,57 +4,47 @@ import { filterDataPost, unqSymbolAction } from '../../redux/action/action';
 
 
 function FetchApi() {
-    // const [symbolData,setSymbolData]=useState()
     const dispatch = useDispatch()
-    // const filterDispatch = useDispatch()
     const getOptionData = useSelector((state) => state.optionReducer.apiData)
     const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
     const selectedData = useSelector((state) => state.optionReducer.selectedSymbol)
     const [filterData,setFilterData]=useState({})
     
+  useMemo(() =>{ bSocket.onopen = (e) => {
+    console.log("message socket connect")
+             console.count(e)
+  };
+  bSocket.onerror=(e)=>{console.log(e)}
+  }
     
-    console.log(getOptionData)
+    , [])
     
     const filterApiData = () => {
-        
-         bSocket.onopen = (e) => {
-                
-            } 
 
+     
+        
+        bSocket.onclose = e => console.count(e)
         const optionSymbol = []
         const unqSymbolObj = []
         
         let filterOptionData = {};
-        let aloneSymbol=[]
+        // let aloneSymbol=[]
         
                 
            getOptionData?.NSE_OPTIDX?.map((item, i) => {
                 const spltData = item.split(",");
                 optionSymbol.push(spltData[0]);
                 const symbol=spltData[0]
-               aloneSymbol.push(spltData)
-              /*  unqSymbolObj[spltData[0]]={...unqSymbolObj[spltData[0]],"name":spltData[0]} */
-                  
+              //  aloneSymbol.push(spltData)
             }); 
             
         
               getOptionData?.NSE_OPTSTK?.map((item) => {
-            
                 const spltData = item.split(",");
                 optionSymbol.push(spltData[0]);
-                  aloneSymbol.push(spltData)
-                  
-                 /*  unqSymbolObj[spltData[0]]={...unqSymbolObj[spltData[0]],"name":spltData[0]} */
-                /* if (spltData[8] === "CE") {
-                    filterOptionData[spltData[0]] = { ...filterOptionData[spltData[0]], [spltData[7]]: { ...filterOptionData[spltData[0]]?.[spltData[7]], "call": spltData }};
-                } else if (spltData[8] === "PE") {
-                    filterOptionData[spltData[0]] = { ...filterOptionData[spltData[0]], [spltData[7]]: { ...filterOptionData[spltData[0]]?.[spltData[7]], "put": spltData }};
-                }  */
-            
-            
+                  // aloneSymbol.push(spltData)
             });  
         
-            console.log( filterOptionData )
         const unqSymbol = [...new Set(optionSymbol)]
         
         unqSymbol.map((items) => {
@@ -67,7 +57,6 @@ function FetchApi() {
     
     useEffect(()=>{filterApiData()},[getOptionData])
 
-    // useMemo(()=> ,[])
 
   return (
       <>

@@ -8,6 +8,7 @@ import NavDropdown from 'react-bootstrap/NavDropdown';
 import Button from 'react-bootstrap/Button';
 import Modal from 'react-bootstrap/Modal';
 import Form from 'react-bootstrap/Form';
+import { dropDown } from './dropDown';
 
 
 export default function Header() {
@@ -18,6 +19,7 @@ export default function Header() {
 
   return (
     <>
+      
       <Navbar collapseOnSelect expand="lg" className='topheader' >
         <Container fluid>
           <Navbar.Brand href="#home" className='order-1 order-lg-1 logo ' ><img src="/assets/img/smarttouch-logo.png" /></Navbar.Brand>
@@ -27,35 +29,47 @@ export default function Header() {
             <Nav className="me-auto ms-auto">
               <Nav.Link href="#features">Trade  </Nav.Link>
               <Nav.Link href="#pricing">Analyse</Nav.Link>
+              
               <NavDropdown title="Watchlist" id="collasible-nav-dropdown">
-                <NavDropdown.Item componentClass={Link} href="/OptionChart" to="/OptionChart">OptionChart</NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/MarketWatch" to="/MarketWatch">
-                  Market Watch
+
+                {
+                  dropDown?.map((item, i) =>
+                 <NavDropdown.Item as={Link} to={item.to} id={i}>
+                  {item.title}
+                </NavDropdown.Item>)
+                }
+                
+              
+                {/* <NavDropdown.Item as={Link} to="/OptionChart">
+                  OptionChart
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/Orderbook" to="/Orderbook">
+                <NavDropdown.Item as={Link}   to="/MarketWatch">
+                  Market Watch
+                </NavDropdown.Item>  
+                <NavDropdown.Item as={Link}  to="/Orderbook">
                   Orderbook
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/Orderwindow" to="/Orderwindow">
+                <NavDropdown.Item as={Link}  to="/Orderwindow">
                   Order Window
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/RearrangeOrder" to="/RearrangeOrder">
+                <NavDropdown.Item as={Link}  to="/RearrangeOrder">
                   RearrangeOrder
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/positions" to="/positions">
+                <NavDropdown.Item as={Link}  to="/positions">
                   positions
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/StrategyBuilder" to="/StrategyBuilder">
+                <NavDropdown.Item as={Link}  to="/StrategyBuilder">
                   StrategyBuilder
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/dashboard" to="/dashboard">
+                <NavDropdown.Item as={Link}  to="/dashboard">
                   Dashboard
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/Screener" to="/Screener">
+                <NavDropdown.Item as={Link}  to="/Screener">
                   Screener
                 </NavDropdown.Item>
-                <NavDropdown.Item componentClass={Link} href="/Niftyheatmap" to="/Niftyheatmap">
+                <NavDropdown.Item as={Link}  to="/Niftyheatmap">
                   Niftyheatmap
-                </NavDropdown.Item>
+                </NavDropdown.Item> */}
 
               </NavDropdown>
 

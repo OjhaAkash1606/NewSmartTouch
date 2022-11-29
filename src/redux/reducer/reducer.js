@@ -34,6 +34,10 @@ export const optionReducer = (state = [], action) => {
       return { ...state, currentSymbol: action.currentSymbol };
       break;
 
+    case types.Default_Symbol:
+      return { ...state, defaultSymbol: action.defaultSymbol };
+      break;
+
     case types.GRID_STRIKE_PRICE:
       return { ...state, Strike: action.Strike };
       break;
@@ -53,6 +57,11 @@ export const optionReducer = (state = [], action) => {
     case types.EXP_DATE:
       return { ...state, curExpDate: action.curExpDate };
       break;
+
+    case types.DEFAULT_EXP_DATE:
+      return { ...state, defExpDate: action.defExpDate };
+      break;
+
     case types.ALL_DATE:
       return { ...state, allDate: action.allDate };
       break;

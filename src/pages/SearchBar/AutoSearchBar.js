@@ -2,7 +2,7 @@ import { faDivide } from '@fortawesome/free-solid-svg-icons';
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { ReactSearchAutocomplete } from 'react-search-autocomplete';
-import { selectedSymbolData,selectedStrikePrice ,allSelectedDate,currentSymbol,gridStrike,strikeBasedToken} from '../../redux/action/action';
+import { selectedSymbolData,selectedStrikePrice ,allSelectedDate,currentSymbol,gridStrike,strikeBasedToken, defaultSymbol} from '../../redux/action/action';
 
 function AutoSearchBar() {
 
@@ -13,7 +13,7 @@ function AutoSearchBar() {
   const selectedSymbol=useSelector((state)=>state.optionReducer.selectSymbol)
   const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
   const getStrikePrice = useSelector((state) => state.optionReducer.selectedStrike)
-  const selectedData = useSelector((state) => state.optionReducer.selectedSymbol)
+  let selectedData = useSelector((state) => state.optionReducer.selectedSymbol)
   const getCurrentSymbol = useSelector((state) => state.optionReducer.currentSymbol)
   const getExpDate = useSelector((state) => state.optionReducer.curExpDate)
    const getOptionData = useSelector((state) => state.optionReducer.apiData)
@@ -25,7 +25,7 @@ function AutoSearchBar() {
 
   const tokenArray=[]
   
-console.log(getExpDate)
+// console.log(getExpDate)
 
   const sendSocket = (token, symbol) => {
   const d = new Date()
@@ -38,7 +38,8 @@ console.log(getExpDate)
     const currentStrike = []
     const token={}
     getStrikePrice?.map((item,id) => {
-        
+      
+      selectedData = selectedData ? selectedData:"NIFTY"
       
       const callToken = selectedData[item]?.call[6]
       const expDate = selectedData[item]?.call[2]
@@ -65,10 +66,13 @@ console.log(getExpDate)
       })
     
   }
-  
-   
 
-  useMemo(()=>getAllToken(),[getCurrentSymbol])
+ /*  window.onload = () => {
+    handleOnSelect("NIFTY");
+  }  
+ */
+  useMemo(() => getAllToken(), [getCurrentSymbol])
+ 
 
   useMemo(()=>setCurExpDate(getExpDate),[getExpDate])
   
@@ -82,13 +86,16 @@ const handleOnSearch = (string, results) => {
 
   
   const handleOnSelect = (item) => {
-    console.log(item.name)
-    
+     
+    const symbol = item.name ?  item.name : item;
+    // const defaultSymbol = !item.name ?  item : null;
+    // const symbol = item.name ;
     const selectedDataOnSearch = []
-    const selectDate=[]
+    console.log(symbol)
+    const selectDate = []
     getOptionData?.NSE_OPTIDX?.map((items) => {
       const spltData = items.split(",");
-      if (item.name === spltData[0]) {
+      if (symbol === spltData[0]) {
         selectedDataOnSearch.push(spltData)
         selectDate.push(spltData[2])
       }
@@ -96,7 +103,7 @@ const handleOnSearch = (string, results) => {
 
     getOptionData?.NSE_OPTSTK?.map((items) => {
       const spltData = items.split(",");
-      if (item.name === spltData[0]) {
+      if (symbol === spltData[0]) {
         selectedDataOnSearch.push(spltData)
          selectDate.push(spltData[2])
       }
@@ -105,20 +112,21 @@ const handleOnSearch = (string, results) => {
     
     //  const expiryDate = selectedDataOnSearch.filter((v, i, a) => a.indexOf(v) === i);
      
-     
        const expiryDate = selectDate.filter((v, i, a) => a.indexOf(v) === i);
-       
-       
-    
-    
-    
-
 
         dispatch(allSelectedDate(expiryDate))
-        dispatch(currentSymbol(item.name))
+        // dispatch(defaultSymbol())
+        dispatch(currentSymbol(symbol))
     symbolDispatch(selectedSymbolData(selectedDataOnSearch))
 
   }
+
+  useMemo(() => handleOnSelect("NIFTY"), [])
+  
+  /* window.onpage = () => {
+    console.log("onPageLoad")
+    handleOnSelect("NIFTY");
+  }  */ 
 
 
   const handleOnFocus = () => {
@@ -140,17 +148,14 @@ const handleOnSearch = (string, results) => {
           onSearch={handleOnSearch}
            onHover={handleOnHover}
           onSelect={handleOnSelect}
-           onFocus={handleOnFocus}
-          autoFocus
+          //  onFocus={handleOnFocus}
           fuseOptions={{ keys: ["name"] }}
             resultStringKeyName="name" 
-        formatResult={formatResult}
-        
-        
+          formatResult={formatResult}
+          inputSearchString={"NIFTY"}
           />
-        
-          </div>
-          </div>
+    </div>
+    </div>
   );
 }
 

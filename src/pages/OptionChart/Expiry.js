@@ -1,37 +1,39 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { expDate, gridStrike2,selectedStrikePrice,filterDataPost } from '../../redux/action/action';
+import { expDate, gridStrike2,selectedStrikePrice,filterDataPost, defExpDate } from '../../redux/action/action';
 
 export const ExpiryDate = () => {
 
-  let currentStrike = useSelector((state) => state.optionReducer.currentSymbol)
+  let currentSymbol = useSelector((state) => state.optionReducer.currentSymbol)
   let currentExpiryDate = useSelector((state) => state.optionReducer.curExpDate)
+  let defaultExpiryDate = useSelector((state) => state.optionReducer.defExpDate)
   const selectedData = useSelector((state) => state.optionReducer.allDate)
   const selectedSymbolData = useSelector((state) => state.optionReducer.selectedSymbol)
   
   const dispatch = useDispatch()
 
-console.log(selectedData)
+// console.log(selectedData)
  
     const [dateArr, setDateArr] = useState()
 
   function dataBasedOnDate() {
     
     const ascending= selectedData?.sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).reverse()
-    console.log(ascending)
+    // console.log(ascending)
 
-    const dateArr=[] 
+    const dateAr=[] 
       
     ascending?.map((item) => {
      const cnvrtDate=new Date(item)
-        dateArr.push(`${String(cnvrtDate.getDate()).padStart(2, '0')} ${new Intl.DateTimeFormat('en-US', {
+        dateAr.push(`${String(cnvrtDate.getDate()).padStart(2, '0')} ${new Intl.DateTimeFormat('en-US', {
             month: 'short'
           }).format(cnvrtDate)} ${cnvrtDate.getFullYear()}`)
     })    
 
-    setDateArr(dateArr)
+    setDateArr(dateAr)
+    if(currentExpiryDate!==true ) dispatch(defExpDate(dateAr[0]))
   }
-  useMemo(() => { dataBasedOnDate(); }, [currentStrike])
+  useMemo(() => { dataBasedOnDate(); }, [currentSymbol])
 
 const dataBasedOnTime = () => {
     
@@ -41,11 +43,14 @@ const dataBasedOnTime = () => {
             const recDate=String(date.getDate()).padStart(2, '0')
             const recMonth = new Intl.DateTimeFormat('en-US', {
             month: 'short'
-          }).format(date)
+            }).format(date)
+            
             const recYear = date.getFullYear()
-            const recTime = `${recDate} ${recMonth} ${recYear}`
-            console.log( currentExpiryDate===recTime)
-          if (recTime === currentExpiryDate) selectDataBasedOnTime.push(item);
+          const recTime = `${recDate} ${recMonth} ${recYear}`
+          
+
+           if(currentExpiryDate===undefined && recTime===defaultExpiryDate) selectDataBasedOnTime.push(item);
+          else if (recTime === currentExpiryDate) selectDataBasedOnTime.push(item);
         })
       const strkPrc = []
       const filterOptionData={}
@@ -60,22 +65,22 @@ const dataBasedOnTime = () => {
                 }
       })
       
-      console.log(filterOptionData)
+    
       const strkPrc1= [...new Set(strkPrc)].sort((a, b) => a - b)
-      console.log(strkPrc1)
+      
         dispatch(selectedStrikePrice(strkPrc1))
       dispatch(gridStrike2(selectDataBasedOnTime))
       dispatch(filterDataPost(filterOptionData))
         
     } 
 
-  useMemo(() => { dataBasedOnTime(); }, [currentExpiryDate])
+  useMemo(() => { dataBasedOnTime() }, [currentExpiryDate,defaultExpiryDate,currentSymbol])
 
-
+ 
                         return (
                                 <>
-                                        <select  className='form-select form-select-sm small-sel' onChange={(e)=>dispatch(expDate(e.target.value))}>
-                                            <option key={0}>Select Exp Date</option>
+                                        <select  className='form-select form-select-sm small-sel' defaultValue={dateArr?.[0]} onChange={(e)=>dispatch(expDate(e.target.value))}>
+                                           
                                             {dateArr?.map((item, i) =>
                                                 <option key={i+1}  value={item}>{item}</option>
                                             )}

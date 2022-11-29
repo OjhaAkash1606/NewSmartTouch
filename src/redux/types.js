@@ -5,14 +5,17 @@ export const types = {
   Filter_Data_Post: 'Filter_Data_Post',
   Unique_Option_Symbol: 'Unique_Option_Symbol',
   Current_Symbol: 'Current_Symbol',
+  Default_Symbol: 'Default_Symbol',
   Post_Api: 'Post_Api',
-  GET_BROADCAST_SOCKET: 'GET_BROADCAST_SOCKET',
   GRID_STRIKE_PRICE: 'GRID_STRIKE_PRICE',
   GRID_STRIKE_PRICE2: 'GRID_STRIKE_PRICE2',
   TOKEN_NUMBER: 'TOKEN_NUMBER',
   LIVE_DATA: 'LIVE_DATA',
   EXP_DATE: 'EXP_DATE',
-  ALL_DATE: 'ALL_DATE'
+  ALL_DATE: 'ALL_DATE',
+  GET_BROADCAST_SOCKET: 'GET_BROADCAST_SOCKET',
+  BRODCAST_ONOPEN: 'BRODCAST_ONOPEN',
+  DEFAULT_EXP_DATE: 'DEFAULT_EXP_DATE'
 };
 /*   OPTION_DATA: 'OPTION_DATA',
   LEG1: 'LEG1',

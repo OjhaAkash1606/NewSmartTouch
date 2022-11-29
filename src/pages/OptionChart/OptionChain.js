@@ -3,28 +3,43 @@ import Dropdown from 'react-bootstrap/Dropdown';
 import AutoSearchBar from '../SearchBar/AutoSearchBar';
 import Form from 'react-bootstrap/Form';
 import Breadcrumb from 'react-bootstrap/Breadcrumb';
-import { AgGridReact } from 'ag-grid-react';
+import hotkeys from "hotkeys-js";
+/* import { AgGridReact } from 'ag-grid-react'; */
+import { AgGridReact, AgGridColumn } from 'ag-grid-react';
 import 'ag-grid-community/styles/ag-grid.css';
 import 'ag-grid-community/styles/ag-theme-alpine.css';
 import DatalistInput, { useComboboxControls } from 'react-datalist-input';
 import axios from 'axios';
 import { useDispatch, useSelector } from 'react-redux';
 import { expDate, gridStrike, gridStrike2, liveData } from '../../redux/action/action';
-import Expiry, { ExpiryDate } from '../OptionChart/Expiry';
+import Expiry, { ExpiryDate } from './Expiry';
 import { render } from 'react-dom';
 import { ModuleRegistry } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import  BtnCellRenderer from '../../pages/BtnCellRenderer/BtnCellRenderer'; 
+import BtnCellRenderer from '../BtnCellRenderer/BtnCellRenderer';
+import { resetDefaultColumn } from './socket';
 
-export default function OptionChart() {
+export default function OptionChain() {
     const getStrikePrice=useSelector((state)=>state.optionReducer.selectedStrike)
     const getCurrentSymbol=useSelector((state)=>state.optionReducer.currentSymbol)
     const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
     const selectedData = useSelector((state) => state.optionReducer.selectedSymbol)
-   
     const { setValue, value } = useComboboxControls({ initialValue: 'Nifty' });
+/* 
+    hotkeys("f5", (e) => {
+    e.preventDefault();
+  }); */
+    
 
     
+    window.onkeydown = (e) => { 
+    console.log(e)
+    if ((e.which || e.keyCode) === 116 || ((e.which || e.keyCode) === 82 && e.ctrlKey)) {
+        // Pressing F5 or Ctrl+R
+        e.preventDefault();
+    } 
+};
+
     return (
         <>
             {/* {console.log(getStrikePrice)} */}
@@ -74,90 +89,62 @@ export default function OptionChart() {
     )
 }
 
-const AgGrid = () => {
 
-    let currentStrike = useSelector((state) => state.optionReducer.Strike)
-    let currentStrike2 = useSelector((state) => state.optionReducer.Strike2)
+  const AgGrid = () => {
+
+    // let currentStrike = useSelector((state) => state.optionReducer.Strike)
+    // let currentStrike2 = useSelector((state) => state.optionReducer.Strike2)
     let selectedStrike = useSelector((state) => state.optionReducer.selectedStrike)
     let currentExpiryDate = useSelector((state) => state.optionReducer.curExpDate)
     const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
     const getCurrentSymbol = useSelector((state) => state.optionReducer.currentSymbol)
-     const selectData = useSelector((state) => state.optionReducer.selectSymbol)
-    const [InitialRowData, setInitialRowData] = useState(); //1
+    const selectData = useSelector((state) => state.optionReducer.selectSymbol)
+    const apiData = useSelector(state => state);
     const [rowData, setRowData] = useState()
-    const [toggle, setToggle] = useState(false); //1
-
-    const [gridApiVolume, setGridApiVolume] = useState(null);
-    const [gridColumnApiVolume, setGridColumnApiVolume] = useState(null);
-    const [hideColumnVolume,setHideColumnVolume]=useState(true) 
-
-    const [gridApiOi, setGridApiOi] = useState(null);
-    const [gridColumnApiOi, setGridColumnApiOi] = useState(null);
-    const [hideColumnOi,setHideColumnOi]=useState(true) 
-
-    const [gridApiOiper, setGridApiOiper] = useState(null);
-    const [gridColumnApiOiper, setGridColumnApiOiper] = useState(null);
-    const [hideColumnOiper,setHideColumnOiper]=useState(true)  
-
+    
     const [gridApi, setGridApi] = useState(null);
     const [gridColumnApi, setGridColumnApi] = useState(null);
-    const [hideColumn,setHideColumn]=useState(true) 
+    const [hideColumn, setHideColumn] = useState({
+        "volume": true, "putSide-volume": true,volumeRef:undefined,
+        oi: true, "putSide-oi": true,oiRef:undefined,
+        "oi-change%": true, "putSide-oi-change%": true,oiChangeRef:undefined,
+        iv: true, "putSide-iv": true,ivRef:undefined,
+        "bid-offer": true,"putSide-bid-offer":true,bidOfferRef:undefined,
+        delta: true,"putSide-delta":true,deltaRef:undefined,
+        theta: true,"putSide-theta":true,thetaRef:undefined,
+        gamma: true, "putSide-gamma": true,gammaRef:undefined,
+        vegga: true, "putSide-vegga": true,veggaRef:undefined,
+    }) 
 
-    const [gridApiGamma, setGridApiGamma] = useState(null);
-    const [gridColumnApiGamma, setGridColumnApiGamma] = useState(null);
-    const [hideColumnGamma,setHideColumnGamma]=useState(true) 
+      
+      console.log(apiData)
+    const volumeRef = useRef(false)
+    const oiRef = useRef(false)
+    const oiChangeRef = useRef(false)
+    const ivRef = useRef(false)
+    const bidOfferRef = useRef(false)
+    const deltaRef = useRef(false)
+    const gammaRef = useRef(false)
+    const thetaRef = useRef(false) 
+    const veggaRef = useRef(false)  
 
-    const [gridApiTheta, setGridApiTheta] = useState(null);
-    const [gridColumnApiTheta, setGridColumnApiTheta] = useState(null);
-    const [hideColumnTheta,setHideColumnTheta]=useState(true) 
-
-    const [gridApiVega, setGridApiVega] = useState(null);
-    const [gridColumnApiVega, setGridColumnApiVega] = useState(null);
-    const [hideColumnVega,setHideColumnVega]=useState(true)  
-
-    const [gridApiIv, setGridApiIv] = useState(null);
-    const [gridColumnApiIv, setGridColumnApiIv] = useState(null);
-    const [hideColumnIv,setHideColumnIv]=useState(true) 
-
-    const [gridApiBidOffer, setGridApiBidOffer] = useState(null);
-    const [gridColumnApiBidOffer, setGridColumnApiBidOffer] = useState(null);
-    const [hideColumnBidOffer,setHideColumnBidOffer]=useState(true)
-
-   /*  ---- Reset default on/off hooks ---- */
-
-    const [setDefault,setStateDefault] = useState()
-    const [setOiDefault,setStateOiDefault] = useState()
-    const [setOiChangeDefault,setStateOiChangeDefault] = useState() 
-    const [setDefaultIv,setStateDefaultIv] = useState() 
-    const [setDefaultBidOffer,setStateDefaultBidOffer] = useState()
-    const [setDefaultDelta,setStateDefaultDelta] = useState()   
-    const [setDefaultGamma,setStateDefaultGamma] = useState()
-    const [setDefaultVega,setStateDefaultVega] = useState()
-    const [setDefaultTheta,setStateDefaultTheta] = useState()
-  
-    const resetDefault = useRef(false)
-    const resetDefaultOi = useRef(false)
-    const resetDefaultOiChange = useRef(false)
-    const resetDefaultIv = useRef(false)
-    const resetDefaultBidOffer = useRef(false)
-    const resetDefaultDelta = useRef(false)
-    const resetDefaultGamma = useRef(false)
-    const resetDefaultVega = useRef(false)
-    const resetDefaultTheta = useRef(false)
+    const ref=[volumeRef,oiRef,oiChangeRef,ivRef,bidOfferRef,deltaRef,gammaRef,thetaRef,veggaRef]
     
     const gridRef = useRef();
 
-    const dispatch=useDispatch()
-    const socketLive=useSelector((state)=>state.optionReducer.socketData)    
+    // const dispatch=useDispatch()
+    // const socketLive=useSelector((state)=>state.optionReducer.socketData)
     const containerStyle = useMemo(() => ({ width: 'calc(100vw-40)', height: '80vh' }), []);
     const gridStyle = useMemo(() => ({ height: '80vh', width: 'calc(100vw-50)' }), []);
+    
+    // console.log(socketLive)
     
 
     const [columnDefs, setColumnDefs] = useState([
         {
             headerName: 'CALL',
             children: [
-                {headerName:"ID",field:"id",minWidth: 140},
+                {headerName:"ID",field:"id",maxWidth: 140},
                 {headerName:"NGE%",field:"nge%",maxWidth: 140},
                 {headerName:"OI-LAKH",field:"oi-lakh",   cellRenderer: BtnCellRenderer,
                 cellRendererParams: {
@@ -166,28 +153,28 @@ const AgGrid = () => {
                     },
                   }, maxWidth: 160 },
                 
-                /* {headerName:"LTP(CHG%)",field:"ltp(chg%)",minWidth: 140}, */
-                {headerName:"LTP(CHG%)",field:"LTP1",minWidth: 140},
-                {headerName:"CALL-TOKEN",field:"CallToken",minWidth: 140},
-                {headerName:"VOLUME",field:"volume", hide:true,minWidth: 140},
+                //  {headerName:"LTP(CHG%)",field:"ltp(chg%)",minWidth: 140}, 
+                {headerName:"LTP(CHG%)",field:"LTP1",maxWidth: 140},
+                {headerName:"CALL-TOKEN",field:"CallToken",maxWidth: 140},
+                {headerName:"VOLUME",field:"volume", hide:true,maxWidth: 140},
                 {headerName:"OI",field:"oi", hide:true,maxWidth: 140},
-                {headerName:"OI-CHANGE%",field:"oi-change%", hide:true,minWidth: 140},
-                {headerName:"DELTA",field:"delta", hide:true,minWidth: 140},
-                {headerName:"GAMMA",field:"gamma", hide:true,minWidth: 140},
-                {headerName:"VEGGA",field:"vegga", hide:true,minWidth: 140},
-                {headerName:"THETA",field:"theta", hide:true,minWidth: 140},
-                {headerName:"IV",field:"iv", hide:true,minWidth: 140},
-                {headerName:"BID-OFFER",field:"bid-offer", hide:true,minWidth: 140},
-               /*  {headerName:"CALL-TOKEN",field:"call-token",minWidth: 155}, */
-                /* {headerName:"STRIKE",field:"strike",minWidth: 160}, */
+                {headerName:"OI-CHANGE%",field:"oi-change%", hide:true,maxWidth: 140},
+                {headerName:"DELTA",field:"delta", hide:true,maxWidth: 140},
+                {headerName:"GAMMA",field:"gamma", hide:true,maxWidth: 140},
+                {headerName:"VEGGA",field:"vegga", hide:true,maxWidth: 140},
+                {headerName:"THETA",field:"theta", hide:true,maxWidth: 140},
+                {headerName:"IV",field:"iv", hide:true,maxWidth: 140},
+                {headerName:"BID-OFFER",field:"bid-offer", hide:true,maxWidth: 140},
+            //    {headerName:"CALL-TOKEN",field:"callSide-token",minWidth: 155}, 
+                //  {headerName:"STRIKE",field:"strike",minWidth: 160}, 
             ],
         },
         {
             headerName: 'PUT',
             children: [
                {headerName:"STRIKE",field:"Strike",maxWidth: 150},
-               {headerName:"LTP(CHG%)",field:"LTP2",minWidth: 140},
-               {headerName:"PUT-TOKEN",field:"PutToken",minWidth: 140},
+               {headerName:"LTP(CHG%)",field:"LTP2",maxWidth: 140},
+               {headerName:"PUT-TOKEN",field:"PutToken",maxWidth: 140},
                 {headerName:"NGE%",field:"nge%",maxWidth: 140},
                 {headerName:"OI-LAKH",field:"oi-lakh", cellRenderer:  BtnCellRenderer,
                 cellRendererParams: {
@@ -196,15 +183,15 @@ const AgGrid = () => {
                     },
                   }, maxWidth: 160 },
                
-                {headerName:"VOLUME",field:"put-volume", hide:true,minWidth: 140},
-                {headerName:"OI",field:"put-oi", hide:true,minWidth: 140},
-                {headerName:"OI-CHANGE%",field:"put-oi-change%", hide:true,minWidth: 140},
-                {headerName:"DELTA",field:"put-delta", hide:true,minWidth: 140},
-                {headerName:"GAMMA",field:"put-gamma", hide:true,minWidth: 140},
-                {headerName:"VEGGA",field:"put-vegga", hide:true,minWidth: 140},
-                {headerName:"THETA",field:"put-theta", hide:true,minWidth: 140},
-                {headerName:"IV",field:"put-iv", hide:true,minWidth: 140},
-                {headerName:"BID-OFFER",field:"put-bid-offer", hide:true,minWidth: 140},   
+                {headerName:"VOLUME",field:"putSide-volume", hide:true,maxWidth: 140},
+                {headerName:"OI",field:"putSide-oi", hide:true,minWidth: 140},
+                {headerName:"OI-CHANGE%",field:"putSide-oi-change%", hide:true,maxWidth: 140},
+                {headerName:"DELTA",field:"putSide-delta", hide:true,maxWidth: 140},
+                {headerName:"GAMMA",field:"putSide-gamma", hide:true,maxWidth: 140},
+                {headerName:"VEGGA",field:"putSide-vegga", hide:true,maxWidth: 140},
+                {headerName:"THETA",field:"putSide-theta", hide:true,maxWidth: 140},
+                {headerName:"IV",field:"putSide-iv", hide:true,maxWidth: 140},
+                {headerName:"BID-OFFER",field:"putSide-bid-offer", hide:true,maxWidth: 140},   
             ],
         },
     ]);
@@ -218,234 +205,99 @@ const AgGrid = () => {
             sortable: true,
             resizable: true,
             editable: true, 
-           /*  filter: true, */
+        //      filter: true, 
         };
     }, []);
-    function onGridReady(params) {
     
+    
+    function onGridReady(params) {
         setGridApi(params.api);
         setGridColumnApi(params.columnApi);
- 
-        setGridApiVolume(params.api);
-        setGridColumnApiVolume(params.columnApi);
+   }  
 
-        setGridApiOi(params.api);
-        setGridColumnApiOi(params.columnApi); 
+    //     --- function for on/off button --- 
 
-        setGridApiOiper(params.api);
-        setGridColumnApiOiper(params.columnApi); 
-
-        setGridApiGamma(params.api);
-        setGridColumnApiGamma(params.columnApi);
-
-        setGridApiTheta(params.api);
-        setGridColumnApiTheta(params.columnApi);
-
-        setGridApiVega(params.api);
-        setGridColumnApiVega(params.columnApi);
-
-        setGridApiIv(params.api);
-        setGridColumnApiIv(params.columnApi);
-
-        setGridApiBidOffer(params.api);
-        setGridColumnApiBidOffer(params.columnApi);
-    
-    }  
-       /* --- function for on/off button --- */
-
-      const showColumnVolume=()=>{
-        console.log("showColumnVolume")
-        gridColumnApiVolume.setColumnVisible('volume',hideColumnVolume) 
-        gridColumnApiVolume.setColumnVisible('put-volume',hideColumnVolume)  
-        setHideColumnVolume(!hideColumnVolume)  
-        gridApiVolume.sizeColumnsToFit()
+    const toggleColumn = (callSide, putSide) => {
+         gridColumnApi.setColumnVisible(callSide,hideColumn[callSide])
+        gridColumnApi.setColumnVisible(putSide,hideColumn[callSide])  
+        setHideColumn((pre)=>({...pre,[callSide]:!hideColumn[callSide]}))  
+        gridApi.sizeColumnsToFit() 
       } 
 
-      const showColumnOi=()=>{
-        gridColumnApiOi.setColumnVisible('oi',hideColumnOi) 
-        gridColumnApiOi.setColumnVisible('put-oi',hideColumnOi) 
-        setHideColumnOi(!hideColumnOi)  
-        gridApiOi.sizeColumnsToFit()
-      } 
-
-      const showColumnOiper=()=>{
-        gridColumnApiOiper.setColumnVisible('oi-change%',hideColumnOiper)
-        gridColumnApiOiper.setColumnVisible('put-oi-change%',hideColumnOiper) 
-        setHideColumnOiper(!hideColumnOiper)  
-        gridApiOiper.sizeColumnsToFit()
-      } 
-
-      const showColumnIv=()=>{
-        gridColumnApiIv.setColumnVisible('iv',hideColumnIv) 
-        gridColumnApiIv.setColumnVisible('put-iv',hideColumnIv) 
-        setHideColumnIv(!hideColumnIv)  
-        gridApiIv.sizeColumnsToFit()
-    
-    } 
-    const showColumnBidOffer=()=>{
-        gridColumnApiBidOffer.setColumnVisible('bid-offer',hideColumnBidOffer) 
-        gridColumnApiBidOffer.setColumnVisible('put-bid-offer',hideColumnBidOffer) 
-        setHideColumnBidOffer(!hideColumnBidOffer)  
-        gridApiBidOffer.sizeColumnsToFit()
-    
-    }   
-      const showColumn=()=>{
-        gridColumnApi.setColumnVisible('delta',hideColumn) 
-        gridColumnApi.setColumnVisible('put-delta',hideColumn) 
-        setHideColumn(!hideColumn)  
-        gridApi.sizeColumnsToFit()
-      } 
-
-      const showColumnGamma=()=>{
-        gridColumnApiGamma.setColumnVisible('gamma',hideColumnGamma)
-        gridColumnApiGamma.setColumnVisible('put-gamma',hideColumnGamma) 
-        setHideColumnGamma(!hideColumnGamma)  
-        gridApiGamma.sizeColumnsToFit()
-      } 
-
-      const showColumnTheta=()=>{
-        gridColumnApiTheta.setColumnVisible('theta',hideColumnTheta) 
-        gridColumnApiTheta.setColumnVisible('put-theta',hideColumnTheta)
-        setHideColumnTheta(!hideColumnTheta)  
-        gridApiTheta.sizeColumnsToFit()
-      } 
-
-      const showColumnVega=()=>{
-        gridColumnApiVega.setColumnVisible('vegga',hideColumnVega) 
-        gridColumnApiVega.setColumnVisible('put-vegga',hideColumnVega) 
-        setHideColumnVega(!hideColumnVega)  
-        gridApiVega.sizeColumnsToFit()
-  }  
-
-  /* --- function for reset default on/off button --- */
+      
+//   --- function for reset default on/off button --- 
 
   const reset =()=>{
-
-    if(hideColumnVolume===false){
-        console.log("Reset function call")
-        resetDefault.current.checked=false
-        gridColumnApiVolume.setColumnVisible('volume',hideColumnVolume) 
-        gridColumnApiVolume.setColumnVisible('put-volume',hideColumnVolume)  
-        setHideColumnVolume(true)  
-        gridApiVolume.sizeColumnsToFit() 
-        setStateDefault(true) 
+      resetDefaultColumn?.map((item, i) => {
+      
+      ref[i].current.checked=false
+      gridColumnApi.setColumnVisible(item.call,false)
+      gridColumnApi.setColumnVisible(item.put,false)
+      setHideColumn((pre)=>({...pre,
+        [item.call]: true, [item.put]: true}))
+      gridApi.sizeColumnsToFit()
+        })
     }
+    
+    ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
-    if(hideColumnOi===false){
-        console.log("Reset function call")
-        resetDefaultOi.current.checked=false
-        gridColumnApiOi.setColumnVisible('oi',hideColumnOi) 
-        gridColumnApiOi.setColumnVisible('put-oi',hideColumnOi) 
-        setHideColumnOi(true)  
-        gridApiOi.sizeColumnsToFit() 
-        setStateOiDefault(true) 
-    }
+   const sendSocket = (token, symbol) => {
+         console.log("request function")
+   const d = new Date()
+   const date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
+             bSocket.send(`24$${date}$31$0#VIVEK$8#NSEFO#NSEFO#${token}#${symbol}#100`)
+         }  
 
-    if(hideColumnOiper===false){
-        console.log("Reset function call")
-        resetDefaultOiChange.current.checked=false
-        gridColumnApiOiper.setColumnVisible('oi-change%',hideColumnOiper)
-        gridColumnApiOiper.setColumnVisible('put-oi-change%',hideColumnOiper)
-        setHideColumnOiper(true)  
-        gridApiOiper.sizeColumnsToFit()
-        setStateOiChangeDefault(true) 
-    }
+    const a = []
+    
+    function setGridData() {
+        const tokenArray=[]
+    
 
-    if(hideColumnIv===false){
-        console.log("Reset function call")
-        resetDefaultIv.current.checked=false
-        gridColumnApiIv.setColumnVisible('iv',hideColumnIv) 
-        gridColumnApiIv.setColumnVisible('put-iv',hideColumnIv) 
-        setHideColumnIv(true)  
-        gridApiIv.sizeColumnsToFit()
-        setStateDefaultIv(true) 
-    }
-
-    if(hideColumnBidOffer===false){
-        console.log("Reset function call")
-        resetDefaultBidOffer.current.checked=false
-        gridColumnApiBidOffer.setColumnVisible('bid-offer',hideColumnBidOffer) 
-        gridColumnApiBidOffer.setColumnVisible('put-bid-offer',hideColumnBidOffer)   
-        setHideColumnBidOffer(true)  
-        gridApiBidOffer.sizeColumnsToFit()
-        setStateDefaultBidOffer(true) 
-    }
-
-    if(hideColumn===false){
-        console.log("Reset function call")
-        resetDefaultDelta.current.checked=false
-        gridColumnApi.setColumnVisible('delta',hideColumn) 
-        gridColumnApi.setColumnVisible('put-delta',hideColumn)   
-        setHideColumn(true)  
-        gridApi.sizeColumnsToFit()
-        setStateDefaultDelta(true) 
-    }
-
-    if(hideColumnGamma===false){
-        console.log("Reset function call")
-        resetDefaultGamma.current.checked=false
-        gridColumnApiGamma.setColumnVisible('gamma',hideColumnGamma)
-        gridColumnApiGamma.setColumnVisible('put-gamma',hideColumnGamma) 
-        setHideColumnGamma(true)  
-        gridApiGamma.sizeColumnsToFit()
-        setStateDefaultGamma(true) 
-    }
-
-    if(hideColumnTheta===false){
-        console.log("Reset function call")
-        resetDefaultTheta.current.checked=false
-        gridColumnApiTheta.setColumnVisible('theta',hideColumnTheta) 
-        gridColumnApiTheta.setColumnVisible('put-theta',hideColumnTheta) 
-        setHideColumnTheta(true)  
-        gridApiTheta.sizeColumnsToFit()
-        setStateDefaultTheta(true)
-    }
-
-    if(hideColumnVega===false){
-        console.log("Reset function call")
-        resetDefaultVega.current.checked=false
-        gridColumnApiVega.setColumnVisible('vegga',hideColumnVega) 
-        gridColumnApiVega.setColumnVisible('put-vegga',hideColumnVega) 
-        setHideColumnVega(true)  
-        gridApiVega.sizeColumnsToFit()
-        setStateDefaultVega(true) 
-    }
- }
-
-     ModuleRegistry.registerModules([ClientSideRowModelModule]);
-     const a=[]
-    selectedStrike?.map((item, i) => {
-         
+        selectedStrike?.map((item, i) => {
         const CallToken = selectData[item].CallToken
         const PutToken  = selectData[item].PutToken
-         const LTP1=selectData[item].LTP1
+        const LTP1=selectData[item].LTP1
         const LTP2 = selectData[item].LTP2
         const Strike=item
-         const id=i
-        a.push({CallToken,PutToken,LTP1,LTP2,Strike,id})
-    })
+        const id = i
+            tokenArray.push(CallToken,PutToken)
+            a.push({ CallToken, PutToken, LTP1, LTP2, Strike, id })
+        })
+        
+
+  tokenArray?.map((item) => {
+           console.log(item)
+            sendSocket(item,getCurrentSymbol)
+      })
+
+        
+    }
     
-    console.log(a)
-        useMemo(() => setRowData(a), [currentExpiryDate])
+
+
+    useMemo(()=>setGridData(),[currentExpiryDate,getCurrentSymbol])
+    
+    // console.log(a)
+        useMemo(() => setRowData(a), [currentExpiryDate,getCurrentSymbol])
     
     useEffect(() => {
         bSocket.onmessage = (e) => {
             const socketData = e.data.split("#")
-            dispatch(liveData(socketData))
-        } 
-    }, [getCurrentSymbol])
-
-    useEffect(() => {
-        if (socketLive?.[0] === "57") {
-                currentStrike2?.find((item,id) => {
-                    if (item.CallToken === socketLive[3]) {
-                        setCallToken(id,socketLive[4])
-                    } else if (item.PutToken === socketLive[3]) {
-                        setPutToken(id,socketLive[4])
+            console.log(socketData)
+            if (socketData?.[0] === "57") {
+            rowData?.find((item, id) => {
+                    // console.log(item)
+                    if (item.CallToken === socketData[3]) {
+                        setCallToken(id,socketData[4])
+                    } else if (item.PutToken === socketData[3]) {
+                        setPutToken(id,socketData[4])
                     }
                 }) 
             }
-    }, [socketLive])
+            // dispatch(liveData(socketData))
+        } 
+    }, [currentExpiryDate])
 
     const getRowId = useMemo(() => {
     return (params) => {
@@ -463,12 +315,12 @@ const AgGrid = () => {
         rowNode.setDataValue('LTP1', ltp); 
   }, []);
 
-  
-  const headerHeight = 40;
+      const headerHeight = 40;
     
 return (
     <>
-          {/* <div className='col-auto ms-auto d-flex align-items-center'> */}
+        {console.log(hideColumn)}
+    {/* //    <div className='col-auto ms-auto d-flex align-items-center'>   */}
           <div className='' style={{position:"absolute",top:"140px", marginLeft:"1100px"}}>
                             <Dropdown className="d-inline mx-2 settinglist" autoClose="outside" align="end">
                                 <Dropdown.Toggle id="dropdown-autoclose-outside" className="setting-btn" >
@@ -525,106 +377,85 @@ return (
                                                     type="switch"
                                                     id="custom-switch"
                                                 />
-                                                <Form.Check onClick={() => showColumnVolume()}
+                                                <Form.Check onClick={() => toggleColumn("volume","putSide-volume") }
                                                     className='mb-2'
                                                     label="Volume"
                                                     type="switch"
                                                     id="custom-switch"
-                                                    onChange={() => {
-                                                        setStateDefault(resetDefault.current.checked)
-                                                      }}
-                                                      ref={resetDefault}
+                                                    ref={volumeRef}
                                                 />
-                                                  <Form.Check  onClick={()=> showColumnOi()} 
+                                                
+                                                  <Form.Check  onClick={()=> toggleColumn("oi","putSide-oi")} 
                                                     className='mb-2'
                                                     label="OI Change"
                                                     type="switch"
                                                     id="custom-switch"
-                                                    onChange={() => {
-                                                        setStateOiDefault(resetDefaultOi.current.checked)
-                                                      }}
-                                                      ref={resetDefaultOi}
+                                                     ref={oiRef}
                                                 />
-                                                <Form.Check onClick={()=> showColumnOiper()} 
+                                                <Form.Check onClick={()=> toggleColumn('oi-change%',"putSide-oi-change%")} 
                                                     className='mb-2'
                                                     label="OI Change %"
                                                     type="switch"
                                                     id="custom-switch"
-                                                    onChange={() => {
-                                                        setStateOiChangeDefault(resetDefaultOiChange.current.checked)
-                                              }}
-                                                      ref={resetDefaultOiChange}
+                                                      ref={oiChangeRef}
                                                 />
-                                               <Form.Check onClick={()=>showColumnIv()}
+                                               <Form.Check onClick={()=>toggleColumn("iv","putSide-iv")}
                                                     label="IV"
                                                     type="switch"
                                                     id="custom-switch"
-                                                    onChange={() => {
-                                                        setStateDefaultIv(resetDefaultIv.current.checked)
-                                                      }}
-                                                      ref={resetDefaultIv}
+                                                       ref={ivRef}
                                                 />
-                                                <Form.Check onClick={()=>showColumnBidOffer()}
+                                                <Form.Check onClick={()=>toggleColumn("bid-offer","putSide-bid-offer")}
                                                     className='mb-2'
                                                     label="Bid Offer"
                                                     type="switch"
                                                     id="custom-switch"
-                                                    onChange={() => {
-                                                        setStateDefaultBidOffer(resetDefaultBidOffer.current.checked)
-                                                      }}
-                                                      ref={resetDefaultBidOffer}
+                                                       ref={bidOfferRef}
                                                 />
-                                                <Form.Check
+                                {
+                                    getCurrentSymbol === "NIFTY" ? <Form.Check
                                                     className='mb-2'
                                                     label="Show 100 multiples only"
                                                     type="switch"
                                                     id="custom-switch"
-                                                />
+                                    /> : null
+                                }
                                                 <p className='mt-2'>Greeks</p>
                                                 <div className='row'>
-                                                <div className='col-6' >  <Form.Check  onClick={showColumn}  
+                                                <div className='col-6' >  <Form.Check   onClick={()=>toggleColumn("delta","putSide-delta")}   
                                                         className='mb-2'
                                                         label="Delta"
                                                         type="switch"
                                                         id="custom-switch" 
-                                                        onChange={() => {
-                                                            setStateDefaultDelta(resetDefaultDelta.current.checked)
-                                                          }}
-                                                          ref={resetDefaultDelta}
+                                                          ref={deltaRef}
                                                     />
                                                     </div>
-                                                    <div className='col-6'>  <Form.Check  onClick={showColumnGamma} 
+                                                    <div className='col-6'>  <Form.Check   onClick={()=>toggleColumn("gamma","putSide-gamma")}  
                                                         className='mb-2'
                                                         label="Gamma"
                                                         type="switch"
                                                         id="custom-switch"
-                                                        onChange={() => {
-                                                            setStateDefaultGamma(resetDefaultGamma.current.checked)
-                                                          }}
-                                                          ref={resetDefaultGamma}
-                                                    /></div>
+                                                          ref={gammaRef}
+                                    />
+                                    </div>
                                                 </div>
                                                 <div className='row'>
-                                                    <div className='col-6'>  <Form.Check onClick={showColumnTheta}  
+                                                    <div className='col-6'>  <Form.Check onClick={()=>toggleColumn("theta","putSide-theta")}  
                                                         className='mb-2'
                                                         label="Theta"
                                                         type="switch"
                                                         id="custom-switch"
-                                                        onChange={() => {
-                                                            setStateDefaultTheta(resetDefaultTheta.current.checked)   
-                                                          }}
-                                                          ref={resetDefaultTheta}      
-                                                    /></div>
-                                                    <div className='col-6'>  <Form.Check  onClick={showColumnVega}  
+                                                         ref={thetaRef}     
+                                    />
+                                    </div>
+                                                    <div className='col-6'>  <Form.Check  onClick={()=>toggleColumn("vegga","putSide-vegga")} 
                                                         className='mb-2'
                                                         label="Vega"
                                                         type="switch"
                                                         id="custom-switch"
-                                                        onChange={() => {
-                                                            setStateDefaultVega(resetDefaultVega.current.checked)
-                                                          }}
-                                                          ref={resetDefaultVega}
-                                                    /></div>
+                                                          ref={veggaRef} 
+                                    />
+                                    </div>
                                                 </div>
                                                 <p className='mt-2'>Premium Features</p>
                                                 <Form.Check
@@ -662,7 +493,8 @@ return (
                                     </div>
                                 </Dropdown.Menu>
                             </Dropdown>
-                        </div>
+        </div>
+        
                     
         <div className='row lesspadding'>
             <div className='col-12'>
@@ -677,7 +509,9 @@ return (
                      rowHeight={35} 
                      animateRows={true}
                      getRowId={getRowId}
-                     headerHeight={headerHeight} 
+                            headerHeight={headerHeight} 
+                          
+            
                 />
                     </div>
                 </div>
