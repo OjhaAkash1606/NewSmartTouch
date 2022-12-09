@@ -45,7 +45,7 @@ function AutoSearchBar() {
       const expDate = selectedData[item]?.call[2]
       const putToken = selectedData[item]?.put[6]
 
-      console.log(expDate)
+      
 
 
      
@@ -96,6 +96,7 @@ const handleOnSearch = (string, results) => {
     getOptionData?.NSE_OPTIDX?.map((items) => {
       const spltData = items.split(",");
       if (symbol === spltData[0]) {
+        console.log(spltData)
         selectedDataOnSearch.push(spltData)
         selectDate.push(spltData[2])
       }
@@ -152,7 +153,7 @@ const handleOnSearch = (string, results) => {
           fuseOptions={{ keys: ["name"] }}
             resultStringKeyName="name" 
           formatResult={formatResult}
-          inputSearchString={"NIFTY"}
+          placeholder={"NIFTY"}
           />
     </div>
     </div>

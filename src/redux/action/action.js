@@ -67,6 +67,10 @@ export const gridStrike = Strike => {
   return { type: types.GRID_STRIKE_PRICE, Strike };
 };
 
+export const assetToken = currentAssetToken => {
+  return { type: types.ASSET_TOKEN, currentAssetToken };
+};
+
 export const gridStrike2 = Strike2 => {
   return { type: types.GRID_STRIKE_PRICE2, Strike2 };
 };

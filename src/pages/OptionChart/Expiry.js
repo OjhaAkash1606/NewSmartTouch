@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { expDate, gridStrike2,selectedStrikePrice,filterDataPost, defExpDate } from '../../redux/action/action';
+import { expDate, gridStrike2,selectedStrikePrice,filterDataPost, defExpDate,assetToken} from '../../redux/action/action';
 
 export const ExpiryDate = () => {
 
@@ -36,7 +36,7 @@ export const ExpiryDate = () => {
   useMemo(() => { dataBasedOnDate(); }, [currentSymbol])
 
 const dataBasedOnTime = () => {
-    
+  let selectAssetToken;
         const selectDataBasedOnTime=[]
         selectedSymbolData?.map((item,id) => {
             const date = new Date(item[2]);
@@ -51,7 +51,10 @@ const dataBasedOnTime = () => {
 
            if(currentExpiryDate===undefined && recTime===defaultExpiryDate) selectDataBasedOnTime.push(item);
           else if (recTime === currentExpiryDate) selectDataBasedOnTime.push(item);
+
         })
+        selectAssetToken = selectDataBasedOnTime[0]?.[1]
+        dispatch(assetToken(selectAssetToken))
       const strkPrc = []
       const filterOptionData={}
       
@@ -68,7 +71,7 @@ const dataBasedOnTime = () => {
     
       const strkPrc1= [...new Set(strkPrc)].sort((a, b) => a - b)
       
-        dispatch(selectedStrikePrice(strkPrc1))
+      dispatch(selectedStrikePrice(strkPrc1))
       dispatch(gridStrike2(selectDataBasedOnTime))
       dispatch(filterDataPost(filterOptionData))
         

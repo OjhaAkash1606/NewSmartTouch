@@ -18,6 +18,7 @@ import { ModuleRegistry } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import BtnCellRenderer from '../BtnCellRenderer/BtnCellRenderer';
 import { resetDefaultColumn } from './socket';
+import { CallDelta, CallGamma, CallPrice, CallRho, CallTheta, CallVega, CallVolatility } from './deltaFunction';
 
 export default function OptionChain() {
     const getStrikePrice=useSelector((state)=>state.optionReducer.selectedStrike)
@@ -25,6 +26,7 @@ export default function OptionChain() {
     const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
     const selectedData = useSelector((state) => state.optionReducer.selectedSymbol)
     const { setValue, value } = useComboboxControls({ initialValue: 'Nifty' });
+
 /* 
     hotkeys("f5", (e) => {
     e.preventDefault();
@@ -95,12 +97,18 @@ export default function OptionChain() {
     // let currentStrike = useSelector((state) => state.optionReducer.Strike)
     // let currentStrike2 = useSelector((state) => state.optionReducer.Strike2)
     let selectedStrike = useSelector((state) => state.optionReducer.selectedStrike)
-    let currentExpiryDate = useSelector((state) => state.optionReducer.curExpDate)
+    let currentExpiryDate = useSelector((state) => state.optionReducer.curExpDate) 
+    let defaultExpiryDate = useSelector((state) => state.optionReducer.defExpDate) 
     const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
     const getCurrentSymbol = useSelector((state) => state.optionReducer.currentSymbol)
     const selectData = useSelector((state) => state.optionReducer.selectSymbol)
-    const apiData = useSelector(state => state);
-    const [rowData, setRowData] = useState()
+    const spotToken = useSelector((state) => state.optionReducer.currentAssetToken)
+    const apiData = useSelector(state => state)
+    const [SpotPrice,setSpotPrice]=useState()  
+    const [openInter,setOpenInter]=useState()  
+      
+      const [rowData, setRowData] = useState()
+          
     
     const [gridApi, setGridApi] = useState(null);
     const [gridColumnApi, setGridColumnApi] = useState(null);
@@ -154,7 +162,7 @@ export default function OptionChain() {
                   }, maxWidth: 160 },
                 
                 //  {headerName:"LTP(CHG%)",field:"ltp(chg%)",minWidth: 140}, 
-                {headerName:"LTP(CHG%)",field:"LTP1",maxWidth: 140},
+                {headerName:"LTP(CHG%)",field:"LTP",maxWidth: 140},
                 {headerName:"CALL-TOKEN",field:"CallToken",maxWidth: 140},
                 {headerName:"VOLUME",field:"volume", hide:true,maxWidth: 140},
                 {headerName:"OI",field:"oi", hide:true,maxWidth: 140},
@@ -173,7 +181,7 @@ export default function OptionChain() {
             headerName: 'PUT',
             children: [
                {headerName:"STRIKE",field:"Strike",maxWidth: 150},
-               {headerName:"LTP(CHG%)",field:"LTP2",maxWidth: 140},
+               {headerName:"LTP(CHG%)",field:"putSideLtp",maxWidth: 140},
                {headerName:"PUT-TOKEN",field:"PutToken",maxWidth: 140},
                 {headerName:"NGE%",field:"nge%",maxWidth: 140},
                 {headerName:"OI-LAKH",field:"oi-lakh", cellRenderer:  BtnCellRenderer,
@@ -186,7 +194,7 @@ export default function OptionChain() {
                 {headerName:"VOLUME",field:"putSide-volume", hide:true,maxWidth: 140},
                 {headerName:"OI",field:"putSide-oi", hide:true,minWidth: 140},
                 {headerName:"OI-CHANGE%",field:"putSide-oi-change%", hide:true,maxWidth: 140},
-                {headerName:"DELTA",field:"putSide-delta", hide:true,maxWidth: 140},
+                {headerName:"DELTA",field:"putSideDelta", hide:true,maxWidth: 140},
                 {headerName:"GAMMA",field:"putSide-gamma", hide:true,maxWidth: 140},
                 {headerName:"VEGGA",field:"putSide-vegga", hide:true,maxWidth: 140},
                 {headerName:"THETA",field:"putSide-theta", hide:true,maxWidth: 140},
@@ -195,6 +203,101 @@ export default function OptionChain() {
             ],
         },
     ]);
+      
+      const getRowId = useMemo(() => {
+    return (params) => {
+      return params.data.id;
+    };
+  }, []);
+      
+      
+      const setGreek = useCallback(({Theory, Delta, Gamma, Theta, Vega, Rho,id}) => {
+           var rowNode = gridRef.current.api.getRowNode(id);
+           
+           const newData = {
+                id,
+               gamma: Gamma,
+               delta: Delta,
+               vegga: Vega,
+              theta:Theta
+           }
+        rowNode.setDataValue(newData); 
+  }, []); 
+      
+const Calc = ({StrikePrice,SpotPrice,id}) => {
+
+    const expDate = currentExpiryDate ? new Date(currentExpiryDate) : new Date(defaultExpiryDate); 
+    const currentDate = new Date(); 
+    const diffTime=Math.abs(expDate - currentDate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+
+ 
+/* var SpotPrice = 0,
+    IntrestRate = 0,
+    StrikePrice = 0,
+    TimeToExpiry = 0,
+    DividentYield = 0,
+    ActualValue = 0,
+    Volatility = 0;
+
+  var Delta = 0,
+    Gamma = 0,
+    Theta = 0,
+    Vega = 0,
+    Rho = 0,
+    Theory = 0; */
+
+  //SpotPrice = parseFloat();
+//   SpotPrice = 42942.2;
+  // IntrestRate = parseFloat();
+//   IntrestRate = 2.5;
+  // StrikePrice = parseFloat();
+//   StrikePrice = 42200.0;
+  //TimeToExpiry = parseInt() / 365;
+//   TimeToExpiry = 4 / 365;
+  //DividentYield = parseFloat();
+//   DividentYield = 2;
+  // ActualValue = parseFloat();
+//   ActualValue = 761.4;
+
+    let _Volatility;
+
+   const objVar = {
+    SpotPrice,
+    StrikePrice,
+    _TimeToExpiry:diffDays/365 ,
+    _IntrestRate:openInter,
+    _Volatility,
+    _DividentYield: 0,
+    /*
+    ActualValue: ActualValue
+     */
+    }; 
+    
+    //  _Volatility = CallVolatility(objVar);
+
+  /* if (!isCalc) {
+    Volatility = CallVolatility(objVar);
+  } else {
+    Volatility = 2;
+  } */
+
+   objVar._Volatility = (CallVolatility(objVar)) / 100;
+  let Theory =Number(CallPrice (objVar)).toFixed(4);
+  let Delta = Number(CallDelta(objVar)).toFixed(4);
+  let Gamma = Number(CallGamma(objVar)).toFixed(4);
+  let Theta = Number(CallTheta(objVar)).toFixed(4);
+  let Vega = Number(CallVega(objVar)).toFixed(4);
+    let Rho = Number(CallRho(objVar)).toFixed(4);
+    
+    setGreek({Theory, Delta, Gamma, Theta, Vega, Rho,id})
+  console.log(Theory, Delta, Gamma, Theta, Vega, Rho); 
+};
+
+
+      
+      
 
     const defaultColDef = useMemo(() => {
         return {
@@ -219,9 +322,9 @@ export default function OptionChain() {
 
     const toggleColumn = (callSide, putSide) => {
          gridColumnApi.setColumnVisible(callSide,hideColumn[callSide])
-        gridColumnApi.setColumnVisible(putSide,hideColumn[callSide])  
-        setHideColumn((pre)=>({...pre,[callSide]:!hideColumn[callSide]}))  
-        gridApi.sizeColumnsToFit() 
+         gridColumnApi.setColumnVisible(putSide,hideColumn[callSide])  
+         setHideColumn((pre)=>({...pre,[callSide]:!hideColumn[callSide]}))
+         gridApi.sizeColumnsToFit() 
       } 
 
       
@@ -241,42 +344,62 @@ export default function OptionChain() {
     
     ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
-   const sendSocket = (token, symbol) => {
-         console.log("request function")
+      const sendSocket = (token, symbol, type) => {
+          const exchange = type ? "NSECM" : "NSEFO"
+          console.log(exchange)
+        exchange==="NSECM"? console.log("request function",spotToken,symbol):console.log("request function",token,symbol)
    const d = new Date()
    const date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
-             bSocket.send(`24$${date}$31$0#VIVEK$8#NSEFO#NSEFO#${token}#${symbol}#100`)
-         }  
+            bSocket.send(`24$${date}$31$0#VIVEK$8#${exchange}#${exchange}#${token}#${symbol}#100`)
 
+        }  
+      /* 
+      const sendSpot = (token, symbol, type) => {
+         
+                console.log("sendSpot")
+                const d = new Date()
+                const date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
+                bSocket.send(`24$${date}$31$0#VIVEK$8#${exchange}#${exchange}#${token}#${symbol}#100`)
+        }
+         */
     const a = []
     
     function setGridData() {
+        sendSocket(spotToken, getCurrentSymbol, "SP")
         const tokenArray=[]
     
 
         selectedStrike?.map((item, i) => {
         const CallToken = selectData[item].CallToken
         const PutToken  = selectData[item].PutToken
-        const LTP1=selectData[item].LTP1
-        const LTP2 = selectData[item].LTP2
+        const LTP=selectData[item].LTP1
+        const putSideLtp = selectData[item].LTP2
         const Strike=item
         const id = i
             tokenArray.push(CallToken,PutToken)
-            a.push({ CallToken, PutToken, LTP1, LTP2, Strike, id })
+            a.push({ CallToken, PutToken, LTP, putSideLtp, Strike, id })
+            // 
+
         })
-        
 
-  tokenArray?.map((item) => {
-           console.log(item)
+        
+        
+        // tokenArray.push(spotToken)
+        console.log(tokenArray)
+        console.log(selectedStrike)
+        
+        
+        tokenArray?.map((item,i) => {
+            console.log(item,i)
             sendSocket(item,getCurrentSymbol)
-      })
-
-        
+        })
     }
     
+    useMemo(()=>rowData?.map((item)=>Calc({StrikePrice:item.Strike,SpotPrice,id:item.id})),[SpotPrice])
+      
 
 
-    useMemo(()=>setGridData(),[currentExpiryDate,getCurrentSymbol])
+      useMemo(() =>setGridData(), [currentExpiryDate, getCurrentSymbol])
     
     // console.log(a)
         useMemo(() => setRowData(a), [currentExpiryDate,getCurrentSymbol])
@@ -284,47 +407,55 @@ export default function OptionChain() {
     useEffect(() => {
         bSocket.onmessage = (e) => {
             const socketData = e.data.split("#")
-            console.log(socketData)
+
+               if(socketData?.[2]==="NSECM")console.log(socketData)
+            
             if (socketData?.[0] === "57") {
+                        setOpenInter(()=>socketData?.[19])
+                if (socketData?.[2] === "NSECM" && socketData?.[3]===spotToken ) setSpotPrice(()=>socketData?.[4])
+                
             rowData?.find((item, id) => {
                     // console.log(item)
-                    if (item.CallToken === socketData[3]) {
+                    if ( item.CallToken === socketData[3]) {
                         setCallToken(id,socketData[4])
-                    } else if (item.PutToken === socketData[3]) {
+                    } else if ( item.PutToken === socketData[3]) {
                         setPutToken(id,socketData[4])
-                    }
+                }
+                // else if(socketData[1]==="NSECM") setSpot(()=>socketData[4])
                 }) 
             }
             // dispatch(liveData(socketData))
         } 
-    }, [currentExpiryDate])
+    }, [currentExpiryDate,getCurrentSymbol])
 
-    const getRowId = useMemo(() => {
-    return (params) => {
-      return params.data.id;
-    };
-  }, []);
+    
     
     const setPutToken = useCallback((id, ltp) => {
         var rowNode = gridRef.current.api.getRowNode(id);
-        rowNode.setDataValue('LTP2', ltp); 
+        rowNode.setDataValue('putSideLtp', ltp); 
     }, []);
 
      const setCallToken = useCallback((id, ltp) => {
         var rowNode = gridRef.current.api.getRowNode(id);
-        rowNode.setDataValue('LTP1', ltp); 
-  }, []);
+        rowNode.setDataValue('LTP', ltp); 
+     }, []);
+      
+       
 
       const headerHeight = 40;
-    
+
+
+      
+        
 return (
     <>
-        {console.log(hideColumn)}
+        {/* {console.log(SpotPrice,spotToken)} */}
     {/* //    <div className='col-auto ms-auto d-flex align-items-center'>   */}
           <div className='' style={{position:"absolute",top:"140px", marginLeft:"1100px"}}>
                             <Dropdown className="d-inline mx-2 settinglist" autoClose="outside" align="end">
                                 <Dropdown.Toggle id="dropdown-autoclose-outside" className="setting-btn" >
-                                    Setting
+                                    {/* Setting */}
+                                    {SpotPrice}
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu className='dropmenucl p-3'>
                                     <div className='row'>

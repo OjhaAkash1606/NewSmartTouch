@@ -62,6 +62,10 @@ export const optionReducer = (state = [], action) => {
       return { ...state, defExpDate: action.defExpDate };
       break;
 
+    case types.ASSET_TOKEN:
+      return { ...state, currentAssetToken: action.currentAssetToken };
+      break;
+
     case types.ALL_DATE:
       return { ...state, allDate: action.allDate };
       break;
