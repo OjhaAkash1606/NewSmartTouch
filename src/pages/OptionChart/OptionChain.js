@@ -18,7 +18,7 @@ import { ModuleRegistry } from '@ag-grid-community/core';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import BtnCellRenderer from '../BtnCellRenderer/BtnCellRenderer';
 import { resetDefaultColumn } from './socket';
-import { CallDelta, CallGamma, CallPrice, CallRho, CallTheta, CallVega, CallVolatility } from './deltaFunction';
+import { CallDelta, CallGamma, CallPrice, CallRho, CallTheta, CallVega, CallVolatility,PutRho,PutVega,PutTheta,PutGamma,PutVolatility,PutPrice,PutDelta } from './deltaFunction';
 
 export default function OptionChain() {
     const getStrikePrice=useSelector((state)=>state.optionReducer.selectedStrike)
@@ -102,10 +102,14 @@ export default function OptionChain() {
     const bSocket = useSelector((state) => state.socketConnection.brcst_socket)
     const getCurrentSymbol = useSelector((state) => state.optionReducer.currentSymbol)
     const selectData = useSelector((state) => state.optionReducer.selectSymbol)
-    const spotToken = useSelector((state) => state.optionReducer.currentAssetToken)
+      const spotToken = useSelector((state) => state.optionReducer.currentAssetToken)
     const apiData = useSelector(state => state)
-    const [SpotPrice,setSpotPrice]=useState()  
-    const [openInter,setOpenInter]=useState()  
+      const [SpotPrice, setSpotPrice] = useState()  
+    //   console.log("SpotPrice",SpotPrice)
+      const [openInter, setOpenInter] = useState()  
+      
+      const [comments, setComments] = useState([]);
+      
       
       const [rowData, setRowData] = useState()
           
@@ -118,14 +122,14 @@ export default function OptionChain() {
         "oi-change%": true, "putSide-oi-change%": true,oiChangeRef:undefined,
         iv: true, "putSide-iv": true,ivRef:undefined,
         "bid-offer": true,"putSide-bid-offer":true,bidOfferRef:undefined,
-        delta: true,"putSide-delta":true,deltaRef:undefined,
-        theta: true,"putSide-theta":true,thetaRef:undefined,
-        gamma: true, "putSide-gamma": true,gammaRef:undefined,
-        vegga: true, "putSide-vegga": true,veggaRef:undefined,
+        delta: true,"putSideDelta":true,deltaRef:undefined,
+        theta: true,"putSideTheta":true,thetaRef:undefined,
+        gamma: true, "putSideGamma": true,gammaRef:undefined,
+        vegga: true, "putSideVegga": true,veggaRef:undefined,
     }) 
 
       
-      console.log(apiData)
+    //   console.log(apiData)
     const volumeRef = useRef(false)
     const oiRef = useRef(false)
     const oiChangeRef = useRef(false)
@@ -152,14 +156,14 @@ export default function OptionChain() {
         {
             headerName: 'CALL',
             children: [
-                {headerName:"ID",field:"id",maxWidth: 140},
-                {headerName:"NGE%",field:"nge%",maxWidth: 140},
-                {headerName:"OI-LAKH",field:"oi-lakh",   cellRenderer: BtnCellRenderer,
+                // {headerName:"ID",field:"id",maxWidth: 140},
+                // {headerName:"NGE%",field:"nge%",maxWidth: 140},
+                /* {headerName:"OI-LAKH",field:"oi-lakh",   cellRenderer: BtnCellRenderer,
                 cellRendererParams: {
                     clicked: function(field) {
                       alert(`${field} was clicked`);
                     },
-                  }, maxWidth: 160 },
+                  }, maxWidth: 160 }, */
                 
                 //  {headerName:"LTP(CHG%)",field:"ltp(chg%)",minWidth: 140}, 
                 {headerName:"LTP(CHG%)",field:"LTP",maxWidth: 140},
@@ -183,46 +187,86 @@ export default function OptionChain() {
                {headerName:"STRIKE",field:"Strike",maxWidth: 150},
                {headerName:"LTP(CHG%)",field:"putSideLtp",maxWidth: 140},
                {headerName:"PUT-TOKEN",field:"PutToken",maxWidth: 140},
-                {headerName:"NGE%",field:"nge%",maxWidth: 140},
-                {headerName:"OI-LAKH",field:"oi-lakh", cellRenderer:  BtnCellRenderer,
+                // {headerName:"NGE%",field:"nge%",maxWidth: 140},
+                /* {headerName:"OI-LAKH",field:"oi-lakh", cellRenderer:  BtnCellRenderer,
                 cellRendererParams: {
                     clicked: function(field) {
                       alert(`${field} was clicked`);
                     },
-                  }, maxWidth: 160 },
+                  }, maxWidth: 160 }, */
                
                 {headerName:"VOLUME",field:"putSide-volume", hide:true,maxWidth: 140},
                 {headerName:"OI",field:"putSide-oi", hide:true,minWidth: 140},
                 {headerName:"OI-CHANGE%",field:"putSide-oi-change%", hide:true,maxWidth: 140},
                 {headerName:"DELTA",field:"putSideDelta", hide:true,maxWidth: 140},
-                {headerName:"GAMMA",field:"putSide-gamma", hide:true,maxWidth: 140},
-                {headerName:"VEGGA",field:"putSide-vegga", hide:true,maxWidth: 140},
-                {headerName:"THETA",field:"putSide-theta", hide:true,maxWidth: 140},
+                {headerName:"GAMMA",field:"putSideGamma", hide:true,maxWidth: 140},
+                {headerName:"VEGGA",field:"putSideVegga", hide:true,maxWidth: 140},
+                {headerName:"THETA",field:"putSideTheta", hide:true,maxWidth: 140},
                 {headerName:"IV",field:"putSide-iv", hide:true,maxWidth: 140},
                 {headerName:"BID-OFFER",field:"putSide-bid-offer", hide:true,maxWidth: 140},   
             ],
         },
     ]);
       
-      const getRowId = useMemo(() => {
-    return (params) => {
-      return params.data.id;
-    };
-  }, []);
       
       
-      const setGreek = useCallback(({Theory, Delta, Gamma, Theta, Vega, Rho,id}) => {
-           var rowNode = gridRef.current.api.getRowNode(id);
-           
-           const newData = {
-                id,
-               gamma: Gamma,
-               delta: Delta,
-               vegga: Vega,
-              theta:Theta
-           }
-        rowNode.setDataValue(newData); 
-  }, []); 
+      
+      const setGreek = useCallback(({ Theory, Delta, Gamma, Theta, Vega, Rho,id}) => {
+          var rowNode = gridRef.current.api.getRowNode(id);
+            rowNode.setDataValue("delta", Delta);
+            rowNode.setDataValue("gamma", Gamma);
+            rowNode.setDataValue("vegga", Vega);
+            rowNode.setDataValue("theta", Theta);
+      }, []); 
+
+       const setPutGreek = useCallback(({ putTheory, putDelta, putGamma, putTheta, putVega, putRho,id}) => {
+          var rowNode = gridRef.current.api.getRowNode(id);
+            rowNode.setDataValue("putSideDelta", putDelta);
+            rowNode.setDataValue("putSideGamma", putGamma);
+            rowNode.setDataValue("putSideVegga", putVega);
+            rowNode.setDataValue("putSideTheta", putTheta);
+      }, []); 
+      
+
+       /* const setCallToken = useCallback((id, ltp) => {
+        var rowNode = gridRef.current.api.getRowNode(id);
+        rowNode.setDataValue('LTP', ltp); 
+     }, []); */
+      
+      const putCalc = ({ StrikePrice, SpotPrice, id }) => {
+
+          const expDate = currentExpiryDate ? new Date(currentExpiryDate) : new Date(defaultExpiryDate); 
+          const currentDate = new Date(); 
+          const diffTime=Math.abs(expDate - currentDate);
+          const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+          
+          let _Volatility;
+
+   let objVar = {
+    SpotPrice,
+    StrikePrice,
+    _TimeToExpiry:diffDays/365 ,
+    _IntrestRate:openInter,
+    _Volatility,
+    _DividentYield: 0,
+    /*
+    ActualValue: ActualValue
+     */
+    }; 
+          
+          objVar._Volatility = (PutVolatility(objVar)) / 100; 
+           const putTheory = Number(PutPrice(objVar)).toFixed(4);
+           const putDelta = Number(PutDelta(objVar)).toFixed(4);
+           const putGamma = Number(PutGamma(objVar)).toFixed(4);
+           const putTheta = Number(PutTheta(objVar)).toFixed(4);
+           const putVega = Number(PutVega(objVar)).toFixed(4);
+           const putRho = Number(PutRho(objVar)).toFixed(4); 
+          
+          setPutGreek({putTheory, putDelta, putGamma, putTheta, putVega, putRho,id})
+            // console.log(putTheory, putDelta, putGamma, putTheta, putVega, putRho); 
+      }
+
+
       
 const Calc = ({StrikePrice,SpotPrice,id}) => {
 
@@ -261,19 +305,22 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
   // ActualValue = parseFloat();
 //   ActualValue = 761.4;
 
-    let _Volatility;
+    // let _Volatility;
 
-   const objVar = {
-    SpotPrice,
-    StrikePrice,
-    _TimeToExpiry:diffDays/365 ,
-    _IntrestRate:openInter,
-    _Volatility,
-    _DividentYield: 0,
-    /*
-    ActualValue: ActualValue
-     */
+let objVar = {
+    SpotPrice ,
+    StrikePrice ,
+    _TimeToExpiry:diffDays / 365,
+    _IntrestRate: 0,
+    _Volatility : 0,
+    _DividentYield: 0, 
     }; 
+
+    comments.map((item) => {
+        objVar.ActualValue=item
+    })
+    
+   
     
     //  _Volatility = CallVolatility(objVar);
 
@@ -282,17 +329,19 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
   } else {
     Volatility = 2;
   } */
+    
+    
 
-   objVar._Volatility = (CallVolatility(objVar)) / 100;
+objVar._Volatility = (CallVolatility(objVar)) / 100;
   let Theory =Number(CallPrice (objVar)).toFixed(4);
   let Delta = Number(CallDelta(objVar)).toFixed(4);
   let Gamma = Number(CallGamma(objVar)).toFixed(4);
   let Theta = Number(CallTheta(objVar)).toFixed(4);
   let Vega = Number(CallVega(objVar)).toFixed(4);
-    let Rho = Number(CallRho(objVar)).toFixed(4);
+  let Rho = Number(CallRho(objVar)).toFixed(4);
     
-    setGreek({Theory, Delta, Gamma, Theta, Vega, Rho,id})
-  console.log(Theory, Delta, Gamma, Theta, Vega, Rho); 
+  setGreek({ Theory, Delta, Gamma, Theta, Vega, Rho,id})
+  //console.log(Theory, Delta, Gamma, Theta, Vega, Rho); 
 };
 
 
@@ -311,7 +360,12 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
         //      filter: true, 
         };
     }, []);
-    
+
+    const getRowId = useMemo(() => {
+    return (params) => {
+      return params.data.id;
+    };
+  }, []);
     
     function onGridReady(params) {
         setGridApi(params.api);
@@ -346,8 +400,8 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
 
       const sendSocket = (token, symbol, type) => {
           const exchange = type ? "NSECM" : "NSEFO"
-          console.log(exchange)
-        exchange==="NSECM"? console.log("request function",spotToken,symbol):console.log("request function",token,symbol)
+        //   console.log(exchange)
+        // exchange==="NSECM"? console.log("request function",spotToken,symbol):console.log("request function",token,symbol)
    const d = new Date()
    const date = `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`
             bSocket.send(`24$${date}$31$0#VIVEK$8#${exchange}#${exchange}#${token}#${symbol}#100`)
@@ -365,19 +419,30 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
     const a = []
     
     function setGridData() {
-        sendSocket(spotToken, getCurrentSymbol, "SP")
+       
         const tokenArray=[]
     
 
         selectedStrike?.map((item, i) => {
+
+             sendSocket(spotToken, getCurrentSymbol, "SP")
+            
         const CallToken = selectData[item].CallToken
         const PutToken  = selectData[item].PutToken
         const LTP=selectData[item].LTP1
         const putSideLtp = selectData[item].LTP2
         const Strike=item
+        const delta=selectData[item].delta
+        const gamma=selectData[item].gamma
+        const vegga=selectData[item].vegga
+        const theta=selectData[item].theta
+        const putSideDelta=selectData[item].putSideDelta
+        const putSideTheta=selectData[item].putSideTheta
+        const putSideGamma=selectData[item].putSideGamma
+        const putSideVegga=selectData[item].putSideVegga
         const id = i
             tokenArray.push(CallToken,PutToken)
-            a.push({ CallToken, PutToken, LTP, putSideLtp, Strike, id })
+            a.push({ CallToken, PutToken, LTP, putSideLtp, Strike, id ,delta,putSideDelta,gamma,putSideGamma,vegga,putSideVegga,theta,putSideTheta})
             // 
 
         })
@@ -385,17 +450,20 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
         
         
         // tokenArray.push(spotToken)
-        console.log(tokenArray)
-        console.log(selectedStrike)
+        // console.log(tokenArray)
+        // console.log(selectedStrike)
         
         
         tokenArray?.map((item,i) => {
-            console.log(item,i)
+            // console.log(item,i)
             sendSocket(item,getCurrentSymbol)
         })
     }
-    
-    useMemo(()=>rowData?.map((item)=>Calc({StrikePrice:item.Strike,SpotPrice,id:item.id})),[SpotPrice])
+    // console.log(a)
+      useMemo(() => rowData?.map((item) => {
+          Calc({ StrikePrice: item.Strike, SpotPrice, id: item.id });
+      putCalc({StrikePrice:item.Strike,SpotPrice,id:item.id})
+      }), [SpotPrice])
       
 
 
@@ -407,17 +475,39 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
     useEffect(() => {
         bSocket.onmessage = (e) => {
             const socketData = e.data.split("#")
-
-               if(socketData?.[2]==="NSECM")console.log(socketData)
+            
+            //console.log(socketData)
+            if (socketData?.[2] === "NSECM" && socketData?.[3]===spotToken ) var spp=Number(socketData[4])
+            
+            console.log(spp)
+            //    if(socketData?.[2]==="NSECM")console.log(socketData)
             
             if (socketData?.[0] === "57") {
-                        setOpenInter(()=>socketData?.[19])
+                setOpenInter(()=>socketData?.[19])
                 if (socketData?.[2] === "NSECM" && socketData?.[3]===spotToken ) setSpotPrice(()=>socketData?.[4])
-                
-            rowData?.find((item, id) => {
-                    // console.log(item)
-                    if ( item.CallToken === socketData[3]) {
-                        setCallToken(id,socketData[4])
+                console.log(SpotPrice)
+                console.log(typeof spp)
+                rowData?.map((item, id) => {
+                    //console.log(item)
+                    if (item.CallToken === socketData[3]) {
+                        
+                        setCallToken(id, socketData[4])
+                        if (socketData?.[2] === "NSECM" && socketData?.[3]===spotToken ) console.log("Yes i did it?")
+                        // setRowData((pre)=>pre[id].LTP=socketData[4])
+                    //console.log("acPrice",socketData[4])
+                    /* var objVar = {
+      SpotPrice: 0,
+      StrikePrice: item.Strike,
+      _TimeToExpiry: 6 / 365,
+      _IntrestRate: 0,
+      //_Volatility: null,
+      _DividentYield: 0,
+      ActualValue: socketData[4],
+                    };
+                    setComments(prev => [...prev, objVar] ) */
+                    //console.log(objVar)
+
+                    //setComments( prev => [...prev, socketData[4]])
                     } else if ( item.PutToken === socketData[3]) {
                         setPutToken(id,socketData[4])
                 }
@@ -428,8 +518,8 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
         } 
     }, [currentExpiryDate,getCurrentSymbol])
 
-    
-    
+
+      
     const setPutToken = useCallback((id, ltp) => {
         var rowNode = gridRef.current.api.getRowNode(id);
         rowNode.setDataValue('putSideLtp', ltp); 
@@ -440,7 +530,12 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
         rowNode.setDataValue('LTP', ltp); 
      }, []);
       
-       
+    //   console.log("comments", comments)
+      
+    //   for (let i = 0; i < comments.length; i++) {
+    //       const element = comments[i];
+    //     //   console.log("element",element)   
+    //   }
 
       const headerHeight = 40;
 
@@ -449,7 +544,7 @@ const Calc = ({StrikePrice,SpotPrice,id}) => {
         
 return (
     <>
-        {/* {console.log(SpotPrice,spotToken)} */}
+        {/* {console.log(a)} */}
     {/* //    <div className='col-auto ms-auto d-flex align-items-center'>   */}
           <div className='' style={{position:"absolute",top:"140px", marginLeft:"1100px"}}>
                             <Dropdown className="d-inline mx-2 settinglist" autoClose="outside" align="end">
@@ -553,7 +648,7 @@ return (
                                 }
                                                 <p className='mt-2'>Greeks</p>
                                                 <div className='row'>
-                                                <div className='col-6' >  <Form.Check   onClick={()=>toggleColumn("delta","putSide-delta")}   
+                                                <div className='col-6' >  <Form.Check   onClick={()=>toggleColumn("delta","putSideDelta")}   
                                                         className='mb-2'
                                                         label="Delta"
                                                         type="switch"
@@ -561,7 +656,7 @@ return (
                                                           ref={deltaRef}
                                                     />
                                                     </div>
-                                                    <div className='col-6'>  <Form.Check   onClick={()=>toggleColumn("gamma","putSide-gamma")}  
+                                                    <div className='col-6'>  <Form.Check   onClick={()=>toggleColumn("gamma","putSideGamma")}  
                                                         className='mb-2'
                                                         label="Gamma"
                                                         type="switch"
@@ -571,7 +666,7 @@ return (
                                     </div>
                                                 </div>
                                                 <div className='row'>
-                                                    <div className='col-6'>  <Form.Check onClick={()=>toggleColumn("theta","putSide-theta")}  
+                                                    <div className='col-6'>  <Form.Check onClick={()=>toggleColumn("theta","putSideTheta")}  
                                                         className='mb-2'
                                                         label="Theta"
                                                         type="switch"
@@ -579,7 +674,7 @@ return (
                                                          ref={thetaRef}     
                                     />
                                     </div>
-                                                    <div className='col-6'>  <Form.Check  onClick={()=>toggleColumn("vegga","putSide-vegga")} 
+                                                    <div className='col-6'>  <Form.Check  onClick={()=>toggleColumn("vegga","putSideVegga")} 
                                                         className='mb-2'
                                                         label="Vega"
                                                         type="switch"

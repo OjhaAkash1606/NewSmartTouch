@@ -1,16 +1,16 @@
 // =================================CallVolatility==================================
 
 export const CallVolatility = ObjGreeksVar => {
-  console.log(ObjGreeksVar);
+  //console.log(ObjGreeksVar);
   var Price = 0.0;
-  console.log(Price);
+  //console.log(Price);
   return (Price = MuicImpliedCallVolatility(ObjGreeksVar));
 };
 
 // ===========================MuicImpliedCallVolatility================================
 
 export const MuicImpliedCallVolatility = ObjGreeksVar => {
-  console.log(ObjGreeksVar);
+  //console.log(ObjGreeksVar);
   var high = 5;
   var low = 0;
   var SpotPrice = parseFloat(ObjGreeksVar.SpotPrice);
@@ -47,14 +47,14 @@ const MuicCallOption = (
   volatility,
   dividend
 ) => {
-  console.log(
-    underlyingPrice,
-    exercisePrice,
-    time,
-    interest,
-    volatility,
-    dividend
-  );
+  // console.log(
+  //   underlyingPrice,
+  //   exercisePrice,
+  //   time,
+  //   interest,
+  //   volatility,
+  //   dividend
+  // );
   var CallOption =
     Math.exp(-dividend * time) *
       underlyingPrice *
@@ -382,4 +382,206 @@ export const MuicRhoCall = ObjGreeksVar => {
   return CallRho;
 };
 
-// =================================Put====================================
+// =================================PutVolatility====================================
+
+export const PutVolatility = function(ObjGreeksVar) {
+  let price = 0.0;
+  return (price = MuicImpliedPutVolatility(ObjGreeksVar));
+};
+
+// ====================MuicImpliedPutVolatility=========================
+const MuicImpliedPutVolatility = function(ObjGreeksVar) {
+  var high = 5;
+  var low = 0;
+  var SpotPrice = parseFloat(ObjGreeksVar.SpotPrice);
+  var StrikePrice = parseFloat(ObjGreeksVar.StrikePrice);
+  var _TimeToExpiry = parseFloat(ObjGreeksVar._TimeToExpiry);
+  var _IntrestRate = parseFloat(ObjGreeksVar._IntrestRate);
+  var volatility = (high + low) / 2;
+  var _DividentYield = parseFloat(ObjGreeksVar._DividentYield);
+
+  do {
+    if (
+      MuicPutOption(
+        SpotPrice,
+        StrikePrice,
+        _TimeToExpiry,
+        _IntrestRate,
+        (high + low) / 2,
+        _DividentYield
+      ) > ObjGreeksVar.ActualValue
+    )
+      high = (high + low) / 2;
+    else low = (high + low) / 2;
+  } while (high - low > 0.0001);
+  return (high + low) / 2 * 100;
+};
+
+const MuicPutOption = function(
+  underlyingPrice,
+  exercisePrice,
+  time,
+  interest,
+  volatility,
+  dividend
+) {
+  var PutOption =
+    exercisePrice *
+      Math.exp(-interest * time) *
+      Cnd(
+        dTwo(
+          underlyingPrice,
+          exercisePrice,
+          time,
+          interest,
+          volatility,
+          dividend
+        )
+      ) -
+    Math.exp(-dividend * time) *
+      underlyingPrice *
+      Cnd(
+        dOne(
+          underlyingPrice,
+          exercisePrice,
+          time,
+          interest,
+          volatility,
+          dividend
+        )
+      );
+
+  return PutOption;
+};
+
+// Put price and MuicActualprice
+
+export const PutPrice = function(ObjGreeksVar) {
+  var price = 0.0;
+  return (price = MuicActualPut(ObjGreeksVar));
+};
+
+const MuicActualPut = function(ObjGreeksVar) {
+  var firstPart =
+    ObjGreeksVar.SpotPrice *
+    Math.exp(-1 * ObjGreeksVar._DividentYield * ObjGreeksVar._TimeToExpiry) *
+    Cnd(-1 * MuicFirstDist(ObjGreeksVar));
+  var secondPart =
+    ObjGreeksVar.StrikePrice *
+    Math.exp(-1 * ObjGreeksVar._IntrestRate * ObjGreeksVar._TimeToExpiry) *
+    Cnd(-1 * MuicSecondDist(ObjGreeksVar));
+  var actualValue = secondPart - firstPart;
+  return actualValue;
+};
+
+// End Put price and MuicActualprice
+
+// Delta Put Calc
+
+export const PutDelta = function(ObjGreeksVar) {
+  var price = 0.0;
+  return (price = MuicDeltaPut(ObjGreeksVar));
+};
+
+const MuicDeltaPut = function(ObjGreeksVar) {
+  var PutDelta =
+    Cnd(
+      dOne(
+        ObjGreeksVar.SpotPrice,
+        ObjGreeksVar.StrikePrice,
+        ObjGreeksVar._TimeToExpiry,
+        ObjGreeksVar._IntrestRate,
+        ObjGreeksVar._Volatility,
+        ObjGreeksVar._DividentYield
+      )
+    ) - 1;
+  return PutDelta;
+};
+// End  Delta Put Calc
+
+//  Gamma Put Calc
+
+export const PutGamma = function(ObjGreeksVar) {
+  var price = 0.0;
+  return (price = MuicGamma(ObjGreeksVar));
+};
+
+// End  Gamma Put Calc
+
+// Theta Put Calc
+
+export const PutTheta = function(ObjGreeksVar) {
+  var price = 0.0;
+  return (price = MuicThetaPut(ObjGreeksVar));
+};
+
+const MuicThetaPut = function(ObjGreeksVar) {
+  var PT =
+    -(
+      ObjGreeksVar.SpotPrice *
+      ObjGreeksVar._Volatility *
+      NdOne(
+        ObjGreeksVar.SpotPrice,
+        ObjGreeksVar.StrikePrice,
+        ObjGreeksVar._TimeToExpiry,
+        ObjGreeksVar._IntrestRate,
+        ObjGreeksVar._Volatility,
+        ObjGreeksVar._DividentYield
+      )
+    ) /
+      (2 * Math.sqrt(ObjGreeksVar._TimeToExpiry)) +
+    ObjGreeksVar._IntrestRate *
+      ObjGreeksVar.StrikePrice *
+      Math.exp(-ObjGreeksVar._IntrestRate * ObjGreeksVar._TimeToExpiry) *
+      (1 -
+        NdTwo(
+          ObjGreeksVar.SpotPrice,
+          ObjGreeksVar.StrikePrice,
+          ObjGreeksVar._TimeToExpiry,
+          ObjGreeksVar._IntrestRate,
+          ObjGreeksVar._Volatility,
+          ObjGreeksVar._DividentYield
+        ));
+  var PutTheta = PT / 365;
+  return PutTheta;
+};
+
+// End Theta Put Calc
+
+// Vega Put Calc
+
+export const PutVega = function(ObjGreeksVar) {
+  var price = 0.0;
+  return (price = MuicVega(ObjGreeksVar));
+};
+
+// End Vega Put Calc
+
+// Rho Put Calc
+
+export const PutRho = function(ObjGreeksVar) {
+  var price = 0.0;
+  return (price = MuicRhoPut(ObjGreeksVar));
+};
+
+const MuicRhoPut = function(ObjGreeksVar) {
+  var PutRho =
+    -0.01 *
+    ObjGreeksVar.StrikePrice *
+    ObjGreeksVar._TimeToExpiry *
+    Math.exp(-ObjGreeksVar._IntrestRate * ObjGreeksVar._TimeToExpiry) *
+    (1 -
+      Cnd(
+        dTwo(
+          ObjGreeksVar.SpotPrice,
+          ObjGreeksVar.StrikePrice,
+          ObjGreeksVar._TimeToExpiry,
+          ObjGreeksVar._IntrestRate,
+          ObjGreeksVar._Volatility,
+          ObjGreeksVar._DividentYield
+        )
+      ));
+  return PutRho;
+};
+
+// End Rho Put Calc

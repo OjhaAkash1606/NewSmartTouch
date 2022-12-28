@@ -62,9 +62,9 @@ const dataBasedOnTime = () => {
         strkPrc.push(item[7])
         
         if (item[8] === "CE") {
-          filterOptionData[item[7]] = { ...filterOptionData[item[7]],  "CallToken": item[6],"LTP1":"00.00"};
+          filterOptionData[item[7]] = { ...filterOptionData[item[7]],  "CallToken": item[6],"LTP1":"00.00","delta":"00.00","gamma":"00.00","vegga":"00.00","theta":"00.00"};
                 } else if (item[8] === "PE") {
-                    filterOptionData[item[7]] = { ...filterOptionData[item[7]], "PutToken": item[6], "LTP2":"00.00" } ;
+                    filterOptionData[item[7]] = { ...filterOptionData[item[7]], "PutToken": item[6], "LTP2":"00.00","putSideDelta":"00.00","putSideGamma":"00.00","putSideTheta":"00.00","putSideVegga":"00.00"} ;
                 }
       })
       

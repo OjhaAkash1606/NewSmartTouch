@@ -19,8 +19,8 @@ export const resetDefaultColumn = [
   { call: 'oi-change%', put: 'putSide-oi-change%', checked: 'oiChangeRef' },
   { call: 'iv', put: 'putSide-iv', checked: 'ivRef' },
   { call: 'bid-offer', put: 'putSide-bid-offer', checked: 'bidOfferRef' },
-  { call: 'delta', put: 'putSide-delta', checked: 'deltaRef' },
-  { call: 'gamma', put: 'putSide-gamma', checked: 'gammaRef' },
-  { call: 'theta', put: 'putSide-theta', checked: 'thetaRef' },
-  { call: 'vegga', put: 'putSide-vegga', checked: 'veggaRef' }
+  { call: 'delta', put: 'putSideDelta', checked: 'deltaRef' },
+  { call: 'gamma', put: 'putSideGamma', checked: 'gammaRef' },
+  { call: 'theta', put: 'putSideTheta', checked: 'thetaRef' },
+  { call: 'vegga', put: 'putSideVegga', checked: 'veggaRef' }
 ];

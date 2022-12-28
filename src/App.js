@@ -25,7 +25,7 @@ import { useSelector } from 'react-redux';
 
 function App() {
   const dispatch = useDispatch();
-  const bSocket = useSelector(state => state.socketConnection.brcst_socket);
+  // const bSocket = useSelector(state => state.socketConnection.brcst_socket);
 
   useEffect(() => {
     dispatch(getBrdSocket());

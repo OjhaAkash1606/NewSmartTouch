@@ -49,7 +49,7 @@ function AutoSearchBar() {
 
 
      
-      currentStrike.push({ "Strike": item, id,"CallToken":callToken,"PutToken":putToken,"LTP1":"00.00","LTP2":"00.00",expDate});
+      currentStrike.push({ "Strike": item, id,"CallToken":callToken,"PutToken":putToken,"LTP1":"00.00","LTP2":"00.00",expDate,putSideDelta:"00.00",delta:"00.00"});
      
 
       token[callToken]=item
@@ -91,12 +91,12 @@ const handleOnSearch = (string, results) => {
     // const defaultSymbol = !item.name ?  item : null;
     // const symbol = item.name ;
     const selectedDataOnSearch = []
-    console.log(symbol)
+    //console.log(symbol)
     const selectDate = []
     getOptionData?.NSE_OPTIDX?.map((items) => {
       const spltData = items.split(",");
       if (symbol === spltData[0]) {
-        console.log(spltData)
+        //console.log(spltData)
         selectedDataOnSearch.push(spltData)
         selectDate.push(spltData[2])
       }
@@ -109,7 +109,7 @@ const handleOnSearch = (string, results) => {
          selectDate.push(spltData[2])
       }
     })
-    console.log(selectedDataOnSearch)
+    //console.log(selectedDataOnSearch)
     
     //  const expiryDate = selectedDataOnSearch.filter((v, i, a) => a.indexOf(v) === i);
      
